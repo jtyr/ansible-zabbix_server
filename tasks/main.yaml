@@ -1,0 +1,172 @@
+---
+
+- name: Add EPEL YUM repo
+  yumrepo:
+    name: epel
+    description: EPEL YUM repo
+    baseurl: "{{ zabbix_server_epel_yumrepo_url }}"
+    gpgcheck: no
+  when: zabbix_server_install_epel
+  tags:
+    - zabbix_server_pkg
+
+- name: Add Zabbix YUM repo
+  yumrepo:
+    name: zabbix
+    description: Official Zabbix {{ zabbix_major_version }} YUM repo
+    baseurl: "{{ zabbix_yumrepo_url }}"
+    gpgcheck: no
+  tags:
+    - zabbix_server_pkg
+
+- name: Install Zabbix server
+  yum:
+    name: "{{ zabbix_server_pkg }}"
+    state: present
+  notify:
+    - Restart Zabbix server
+  tags:
+    - zabbix_server_pkg
+
+- name: Configure Zabbix server
+  template:
+    src: zabbix_server.conf.j2
+    dest: "{{ zabbix_server_config_file }}"
+  notify:
+    - Restart Zabbix server
+  tags:
+    - zabbix_server_config
+
+- name: Install dependency for PostreSQL user/db creation/import
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - python-psycopg2
+    - postgresql
+  when: zabbix_server_db_engine == 'pgsql'
+  tags:
+    - zabbix_server_db
+
+- name: Create PostgreSQL DB
+  postgresql_db:
+    name: "{{ zabbix_server_db_name }}"
+    login_user: "{{ zabbix_server_db_login_user | default('postgres') }}"
+    login_password: "{{ zabbix_server_db_login_password | default('postgres') }}"
+    login_host: "{{ zabbix_server_db_host }}"
+    port: "{{ zabbix_server_db_port | default(zabbix_server_db_port_pgsql_default) }}"
+  register: zabbix_server_db_pgsql_created
+  when: zabbix_server_db_engine == 'pgsql'
+  tags:
+    - zabbix_server_db
+
+- name: Create PostgreSQL user
+  postgresql_user:
+    name: "{{ zabbix_server_db_user }}"
+    db: "{{ zabbix_server_db_name }}"
+    password: "{{ zabbix_server_db_password }}"
+    port: "{{ zabbix_server_db_port | default(zabbix_server_db_port_pgsql_default) }}"
+    priv: ALL
+    login_user: "{{ zabbix_server_db_login_user | default('postgres') }}"
+    login_password: "{{ zabbix_server_db_login_password | default('postgres') }}"
+    login_host: "{{ zabbix_server_db_host }}"
+    port: "{{ zabbix_server_db_port | default(zabbix_server_db_port_pgsql_default) }}"
+  when: zabbix_server_db_engine == 'pgsql'
+  tags:
+    - zabbix_server_db
+
+- name: Install dependency for MySQL user/db creation/import
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - MySQL-python
+    - mysql
+  when: zabbix_server_db_engine == 'mysql'
+  tags:
+    - zabbix_server_db
+
+- name: Create MySQL DB
+  mysql_db:
+    name: "{{ zabbix_server_db_name }}"
+    login_host: "{{ zabbix_server_db_host }}"
+    login_port: "{{ zabbix_server_db_port | default(zabbix_server_db_port_mysql_default) }}"
+    login_user: "{{ zabbix_server_db_login_user | default('root') }}"
+    login_password: "{{ zabbix_server_db_login_password | default('') }}"
+    encoding: utf8
+  register: zabbix_server_db_mysql_created
+  when: zabbix_server_db_engine == 'mysql'
+  tags:
+    - zabbix_server_db
+
+- name: Create MySQL user
+  mysql_user:
+    login_host: "{{ zabbix_server_db_host }}"
+    login_port: "{{ zabbix_server_db_port | default(zabbix_server_db_port_mysql_default) }}"
+    login_user: "{{ zabbix_server_db_login_user | default('root')}}"
+    login_password: "{{ zabbix_server_db_login_password | default('') }}"
+    host: "{{ zabbix_server_db_user_host | default('localhost') }}"
+    name: "{{ zabbix_server_db_user }}"
+    password: "{{ zabbix_server_db_password }}"
+    priv: "{{ zabbix_server_db_name }}.*:ALL"
+  when: zabbix_server_db_engine == 'mysql'
+  tags:
+    - zabbix_server_db
+
+- name: Import Zabbix DB schema for PostgreSQL
+  shell: >
+    psql
+    --username {{ zabbix_server_db_user }}
+    --host {{ zabbix_server_db_host }}
+    --port {{ zabbix_server_db_port | default(zabbix_server_db_port_pgsql_default) }}
+    --dbname {{ zabbix_server_db_name }}
+    --file {{ item }}
+  args:
+    executable: /bin/bash
+  environment:
+    PGPASSWORD: "{{ zabbix_server_db_password }}"
+  with_items:
+    - "{{ zabbix_server_db_schema_dir }}/schema.sql"
+    - "{{ zabbix_server_db_schema_dir }}/images.sql"
+    - "{{ zabbix_server_db_schema_dir }}/data.sql"
+  when: >
+    zabbix_server_db_engine == 'pgsql' and
+    zabbix_server_db_pgsql_created.changed
+  tags:
+    - zabbix_server_db
+
+- name: Import Zabbix DB schema for MySQL
+  shell: >
+    mysql
+    --user={{ zabbix_server_db_user }}
+    --password={{ zabbix_server_db_password }}
+    --host={{ zabbix_server_db_host }}
+    --port={{ zabbix_server_db_port | default(zabbix_server_db_port_mysql_default) }}
+    {{ zabbix_server_db_name }} < {{ item }}
+  args:
+    executable: /bin/bash
+  with_items:
+    - "{{ zabbix_server_db_schema_dir }}/schema.sql"
+    - "{{ zabbix_server_db_schema_dir }}/images.sql"
+    - "{{ zabbix_server_db_schema_dir }}/data.sql"
+  when: >
+    zabbix_server_db_engine == 'mysql' and
+    zabbix_server_db_mysql_created.changed
+  tags:
+    - zabbix_server_db
+
+- name: Make sure the Zabbix Server service is enabled
+  service:
+    name: zabbix-server
+    enabled: yes
+  tags:
+    - zabbix_server_config
+
+- name: Make sure the Zabbix server service is running
+  service:
+    name: zabbix-server
+    state: started
+  register: zabbix_server_service_started
+  tags:
+    - zabbix_server_config
+    - zabbix_server_pkg

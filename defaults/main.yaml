@@ -1,0 +1,112 @@
+---
+
+# Major Zabbix version (used for Zabbix YUM repo)
+zabbix_major_version: 2.4
+
+# Zabbix YUM repo URL
+zabbix_yumrepo_url: http://repo.zabbix.com/zabbix/{{ zabbix_major_version }}/rhel/{{ ansible_distribution_major_version }}/{{ ansible_userspace_architecture }}/
+
+# Path to the zabix_server.conf file
+zabbix_server_config_file: /etc/zabbix/zabbix_server.conf
+
+# Whether to install EPEL YUM repo
+zabbix_server_install_epel: yes
+
+# EPEL YUM repo URL
+zabbix_server_epel_yumrepo_url: "{{ yumrepo_epel_url | default('https://dl.fedoraproject.org/pub/epel/' + ansible_distribution_major_version + '/' + ansible_userspace_architecture + '/') }}"
+
+# DB engine
+zabbix_server_db_engine: pgsql
+
+# Package to be installed (exact version can be specified here)
+zabbix_server_pkg: zabbix-server-{{ zabbix_server_db_engine }}
+
+# Default PostgreSQL port
+zabbix_server_db_port_pgsql_default: 5432
+
+# Default MySQL port
+zabbix_server_db_port_mysql_default: 3306
+
+# Initial DB schema direcotry
+zabbix_server_db_schema_dir: /usr/share/doc/zabbix-server-{{ zabbix_server_db_engine }}-*/create
+
+
+# DB admin which have rights to create the zabix DB user
+# (the default value is set in the tasks.yaml depending on the DB engine)
+#zabbix_server_db_login_user: notset
+#zabbix_server_db_login_password: notset
+
+# DB server configuration options
+zabbix_server_db_host: localhost
+zabbix_server_db_name: zabbix
+zabbix_server_db_user: zabbix
+zabbix_server_db_password: zabbix
+
+
+# Custom DB configuration
+zabbix_server_db__custom: {}
+
+# Default DB configuration
+zabbix_server_db__default:
+  "DB setting":
+    DBHost: "{{ zabbix_server_db_host }}"
+    DBName: "{{ zabbix_server_db_name }}"
+    DBUser: "{{ zabbix_server_db_user }}"
+    DBPassword: "{{ zabbix_server_db_password }}"
+
+# Final DB configuration
+zabbix_server_db: "{{
+  zabbix_server_db__default.update(
+  zabbix_server_db__custom) }}{{ zabbix_server_db__default }}"
+
+
+# Logging options
+zabbix_server_logging_file: /var/log/zabbix/zabbix_server.log
+zabbix_server_logging_filesize: 1
+
+# Custom logging configuration
+zabbix_server_logging__custom: {}
+
+# Default logging configuration
+zabbix_server_logging__default:
+  "Logging":
+    LogFile: "{{ zabbix_server_logging_file }}"
+    LogFileSize: "{{ zabbix_server_logging_filesize }}"
+
+# Final logging configuration
+zabbix_server_logging: "{{
+  zabbix_server_logging__default.update(
+  zabbix_server_logging__custom) }}{{ zabbix_server_logging__default }}"
+
+
+# Other configuration options
+zabbix_server_pidfile: /var/run/zabbix/zabbix_server.pid
+zabbix_server_alert_scripts_path: /usr/lib/zabbix/alertscripts
+zabbix_server_externalScripts: /usr/lib/zabbix/externalscripts
+
+# Custom other configuraton
+zabbix_server_other__custom: {}
+
+# Default other configuration
+zabbix_server_other__default:
+  "Other":
+    PidFile: "{{ zabbix_server_pidfile }}"
+    AlertScriptsPath: "{{ zabbix_server_alert_scripts_path }}"
+    ExternalScripts: "{{ zabbix_server_externalScripts }}"
+
+# Final other configuration
+zabbix_server_other: "{{
+  zabbix_server_other__default.update(
+  zabbix_server_other__custom) }}{{ zabbix_server_other__default }}"
+
+
+# Custom Zabbix configuration
+zabbix_server__custom: {}
+
+# Main Zabbix config
+zabbix_server__tmp: {}
+zabbix_server_config: "{{
+  zabbix_server__tmp.update(zabbix_server_db) }}{{
+  zabbix_server__tmp.update(zabbix_server_logging) }}{{
+  zabbix_server__tmp.update(zabbix_server_other) }}{{
+  zabbix_server__tmp.update(zabbix_server__custom) }}{{ zabbix_server__tmp }}"
