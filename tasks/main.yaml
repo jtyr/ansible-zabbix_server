@@ -6,7 +6,7 @@
     description: EPEL YUM repo
     baseurl: "{{ zabbix_server_epel_yumrepo_url }}"
     gpgcheck: no
-  when: zabbix_server_install_epel
+  when: zabbix_server_epel_install
   tags:
     - zabbix_server_pkg
 

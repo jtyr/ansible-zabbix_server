@@ -109,7 +109,7 @@ zabbix_server_pkg: zabbix-server-{{ zabbix_server_db_engine }}
 zabbix_server_config_file: /etc/zabbix/zabbix_server.conf
 
 # Whether to install EPEL YUM repo
-zabbix_server_install_epel: yes
+zabbix_server_epel_install: yes
 
 # EPEL YUM repo URL
 zabbix_server_epel_yumrepo_url: "{{ yumrepo_epel_url | default('https://dl.fedoraproject.org/pub/epel/' + ansible_distribution_major_version + '/' + ansible_userspace_architecture + '/') }}"
