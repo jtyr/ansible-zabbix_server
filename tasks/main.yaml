@@ -65,7 +65,6 @@
     name: "{{ zabbix_server_db_user }}"
     db: "{{ zabbix_server_db_name }}"
     password: "{{ zabbix_server_db_password }}"
-    port: "{{ zabbix_server_db_port | default(zabbix_server_db_port_pgsql_default) }}"
     priv: ALL
     login_user: "{{ zabbix_server_db_login_user | default('postgres') }}"
     login_password: "{{ zabbix_server_db_login_password | default('postgres') }}"
