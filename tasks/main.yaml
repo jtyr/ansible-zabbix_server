@@ -1,5 +1,10 @@
 ---
 
+- name: Test distribution
+  assert:
+    that: >
+      ansible_os_family == "RedHat"
+
 - name: Add EPEL YUM repo
   yumrepo:
     name: epel
