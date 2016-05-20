@@ -3,7 +3,7 @@ zabbix_server
 
 Ansible role which helps to install and configure Zabbix server.
 
-The configuraton of the role is done in such way that it should not be
+The configuration of the role is done in such way that it should not be
 necessary to change the role for any kind of configuration. All can be
 done either by changing role parameters or by declaring completely new
 configuration as a variable. That makes this role absolutely
@@ -36,10 +36,10 @@ Usage
         zabbix_server_db_host: 10.0.0.123
         # Admin DB credentials for the zabbix user creation
         zabbix_server_db_login_user: admin
-        zabbix_server_db_login_password: S3Cr3t
+        zabbix_server_db_login_password: s3cr3t
         # Zabbix DB user credentials
         zabbix_server_db_user: zabbix
-        zabbix_server_db_password: z4B1x123
+        zabbix_server_db_password: z4b1x123
 
 # Change default Logging configuration
 - name: Example 4
@@ -83,27 +83,26 @@ The default DB engine is set to PostgreSQL but it can be changed to MySQL
 before the first run of the role.
 
 This role requires [Config
-Encoders](https://github.com/jtyr/ansible/blob/jtyr-config_encoders/lib/ansible/plugins/filter/config_encoders.py)
-which must be configured in the `ansible.cfg` file like this:
+Encoders](https://github.com/jtyr/ansible/blob/jtyr-config_encoders/lib/ansible/plugins/filter/config_encoders.py).
+Download the file and put it into the `filter_plugins` directory in the root of
+your playbook:
 
 ```
-[defaults]
-
-filter_plugins = ./plugins/filter/
+$ mkdir ./filter_plugins
+$ cd ./filter_plugins
+$ curl -O https://github.com/jtyr/ansible/blob/jtyr-config_encoders/lib/ansible/plugins/filter/config_encoders.py
 ```
-
-Where the `./plugins/filter/` containes the `config_encoders.py` file.
 
 
 Role variables
 --------------
 
 ```
-# DB engine
-zabbix_server_db_engine: pgsql
+# Major Zabbix version (used for Zabbix YUM repo)
+zabbix_major_version: 2.4
 
-# Package to be installed (you can specify exact version here)
-zabbix_server_pkg: zabbix-server-{{ zabbix_server_db_engine }}
+# Zabbix YUM repo URL
+zabbix_yumrepo_url: http://repo.zabbix.com/zabbix/{{ zabbix_major_version }}/rhel/{{ ansible_distribution_major_version }}/$basearch/
 
 # Path to the zabix_server.conf file
 zabbix_server_config_file: /etc/zabbix/zabbix_server.conf
@@ -112,13 +111,13 @@ zabbix_server_config_file: /etc/zabbix/zabbix_server.conf
 zabbix_server_epel_install: yes
 
 # EPEL YUM repo URL
-zabbix_server_epel_yumrepo_url: "{{ yumrepo_epel_url | default('https://dl.fedoraproject.org/pub/epel/' + ansible_distribution_major_version + '/' + ansible_userspace_architecture + '/') }}"
+zabbix_server_epel_yumrepo_url: "{{ yumrepo_epel_url | default('https://dl.fedoraproject.org/pub/epel/$releasever/$basearch/') }}"
 
-# Major Zabbix version (used for Zabbix YUM repo)
-zabbix_server_major_version: 2.4
+# DB engine
+zabbix_server_db_engine: pgsql
 
-# Zabbix YUM repo URL
-zabbix_server_yumrepo_url: http://repo.zabbix.com/zabbix/{{ zabbix_server_major_version }}/rhel/{{ ansible_distribution_major_version }}/{{ ansible_userspace_architecture }}/
+# Package to be installed (exact version can be specified here)
+zabbix_server_pkg: zabbix-server-{{ zabbix_server_db_engine }}
 
 # Default PostgreSQL port
 zabbix_server_db_port_pgsql_default: 5432
@@ -129,14 +128,38 @@ zabbix_server_db_port_mysql_default: 3306
 # Initial DB schema direcotry
 zabbix_server_db_schema_dir: /usr/share/doc/zabbix-server-{{ zabbix_server_db_engine }}-*/create
 
+# User used to create DB and user
+zabbix_server_db_login_user: "{{
+  'postgres'
+    if zabbix_server_db_engine == 'pgsql'
+    else
+  'root' }}"
 
-# DB admin which have rights to create the zabix DB user
-# (the default value is set in the tasks.yaml depending on the DB engine)
-#zabbix_server_db_login_user: notset
-#zabbix_server_db_login_password: notset
+# Password used to create DB and user
+zabbix_server_db_login_password: "{{
+  'postgres'
+     if zabbix_server_db_engine == 'pgsql'
+     else
+  None }}"
+
+# Packages required for the PostgreSQL DB creation
+zabbix_server_db_pgsql_pkgs:
+    - python-psycopg2
+    - postgresql
+
+# Packages required for the MySQL DB creation
+zabbix_server_db_mysql_pkgs:
+    - MySQL-python
+    - mysql
+
 
 # DB server configuration options
 zabbix_server_db_host: localhost
+zabbix_server_db_port: "{{
+  zabbix_server_db_port_pgsql_default
+    if zabbix_server_db_engine == 'pgsql'
+    else
+  zabbix_server_db_port_mysql_default }}"
 zabbix_server_db_name: zabbix
 zabbix_server_db_user: zabbix
 zabbix_server_db_password: zabbix
@@ -149,6 +172,7 @@ zabbix_server_db__custom: {}
 zabbix_server_db__default:
   "DB setting":
     DBHost: "{{ zabbix_server_db_host }}"
+    DBPort: "{{ zabbix_server_db_port }}"
     DBName: "{{ zabbix_server_db_name }}"
     DBUser: "{{ zabbix_server_db_user }}"
     DBPassword: "{{ zabbix_server_db_password }}"
@@ -199,10 +223,10 @@ zabbix_server_other: "{{
   zabbix_server_other__custom) }}{{ zabbix_server_other__default }}"
 
 
-# Custom zabbix configuration
+# Custom Zabbix configuration
 zabbix_server__custom: {}
 
-# Main zabbix config
+# Main Zabbix config
 zabbix_server__tmp: {}
 zabbix_server_config: "{{
   zabbix_server__tmp.update(zabbix_server_db) }}{{

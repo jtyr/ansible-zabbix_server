@@ -4,7 +4,7 @@
 zabbix_major_version: 2.4
 
 # Zabbix YUM repo URL
-zabbix_yumrepo_url: http://repo.zabbix.com/zabbix/{{ zabbix_major_version }}/rhel/{{ ansible_distribution_major_version }}/{{ ansible_userspace_architecture }}/
+zabbix_yumrepo_url: http://repo.zabbix.com/zabbix/{{ zabbix_major_version }}/rhel/{{ ansible_distribution_major_version }}/$basearch/
 
 # Path to the zabix_server.conf file
 zabbix_server_config_file: /etc/zabbix/zabbix_server.conf
@@ -13,7 +13,7 @@ zabbix_server_config_file: /etc/zabbix/zabbix_server.conf
 zabbix_server_epel_install: yes
 
 # EPEL YUM repo URL
-zabbix_server_epel_yumrepo_url: "{{ yumrepo_epel_url | default('https://dl.fedoraproject.org/pub/epel/' + ansible_distribution_major_version + '/' + ansible_userspace_architecture + '/') }}"
+zabbix_server_epel_yumrepo_url: "{{ yumrepo_epel_url | default('https://dl.fedoraproject.org/pub/epel/$releasever/$basearch/') }}"
 
 # DB engine
 zabbix_server_db_engine: pgsql
@@ -30,14 +30,38 @@ zabbix_server_db_port_mysql_default: 3306
 # Initial DB schema direcotry
 zabbix_server_db_schema_dir: /usr/share/doc/zabbix-server-{{ zabbix_server_db_engine }}-*/create
 
+# User used to create DB and user
+zabbix_server_db_login_user: "{{
+  'postgres'
+    if zabbix_server_db_engine == 'pgsql'
+    else
+  'root' }}"
 
-# DB admin which have rights to create the zabix DB user
-# (the default value is set in the tasks.yaml depending on the DB engine)
-#zabbix_server_db_login_user: notset
-#zabbix_server_db_login_password: notset
+# Password used to create DB and user
+zabbix_server_db_login_password: "{{
+  'postgres'
+     if zabbix_server_db_engine == 'pgsql'
+     else
+  None }}"
+
+# Packages required for the PostgreSQL DB creation
+zabbix_server_db_pgsql_pkgs:
+    - python-psycopg2
+    - postgresql
+
+# Packages required for the MySQL DB creation
+zabbix_server_db_mysql_pkgs:
+    - MySQL-python
+    - mysql
+
 
 # DB server configuration options
 zabbix_server_db_host: localhost
+zabbix_server_db_port: "{{
+  zabbix_server_db_port_pgsql_default
+    if zabbix_server_db_engine == 'pgsql'
+    else
+  zabbix_server_db_port_mysql_default }}"
 zabbix_server_db_name: zabbix
 zabbix_server_db_user: zabbix
 zabbix_server_db_password: zabbix
@@ -50,6 +74,7 @@ zabbix_server_db__custom: {}
 zabbix_server_db__default:
   "DB setting":
     DBHost: "{{ zabbix_server_db_host }}"
+    DBPort: "{{ zabbix_server_db_port }}"
     DBName: "{{ zabbix_server_db_name }}"
     DBUser: "{{ zabbix_server_db_user }}"
     DBPassword: "{{ zabbix_server_db_password }}"

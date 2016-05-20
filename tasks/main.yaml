@@ -46,9 +46,7 @@
   yum:
     name: "{{ item }}"
     state: present
-  with_items:
-    - python-psycopg2
-    - postgresql
+  with_items: "{{ zabbix_server_db_pgsql_pkgs }}"
   when: zabbix_server_db_engine == 'pgsql'
   tags:
     - zabbix_server_db
@@ -56,10 +54,10 @@
 - name: Create PostgreSQL DB
   postgresql_db:
     name: "{{ zabbix_server_db_name }}"
-    login_user: "{{ zabbix_server_db_login_user | default('postgres') }}"
-    login_password: "{{ zabbix_server_db_login_password | default('postgres') }}"
+    login_user: "{{ zabbix_server_db_login_user }}"
+    login_password: "{{ zabbix_server_db_login_password }}"
     login_host: "{{ zabbix_server_db_host }}"
-    port: "{{ zabbix_server_db_port | default(zabbix_server_db_port_pgsql_default) }}"
+    port: "{{ zabbix_server_db_port }}"
   register: zabbix_server_db_pgsql_created
   when: zabbix_server_db_engine == 'pgsql'
   tags:
@@ -71,10 +69,10 @@
     db: "{{ zabbix_server_db_name }}"
     password: "{{ zabbix_server_db_password }}"
     priv: ALL
-    login_user: "{{ zabbix_server_db_login_user | default('postgres') }}"
-    login_password: "{{ zabbix_server_db_login_password | default('postgres') }}"
+    login_user: "{{ zabbix_server_db_login_user }}"
+    login_password: "{{ zabbix_server_db_login_password }}"
     login_host: "{{ zabbix_server_db_host }}"
-    port: "{{ zabbix_server_db_port | default(zabbix_server_db_port_pgsql_default) }}"
+    port: "{{ zabbix_server_db_port }}"
   when: zabbix_server_db_engine == 'pgsql'
   tags:
     - zabbix_server_db
@@ -83,9 +81,7 @@
   yum:
     name: "{{ item }}"
     state: present
-  with_items:
-    - MySQL-python
-    - mysql
+  with_items: "{{ zabbix_server_db_mysql_pkgs }}"
   when: zabbix_server_db_engine == 'mysql'
   tags:
     - zabbix_server_db
@@ -94,9 +90,9 @@
   mysql_db:
     name: "{{ zabbix_server_db_name }}"
     login_host: "{{ zabbix_server_db_host }}"
-    login_port: "{{ zabbix_server_db_port | default(zabbix_server_db_port_mysql_default) }}"
-    login_user: "{{ zabbix_server_db_login_user | default('root') }}"
-    login_password: "{{ zabbix_server_db_login_password | default('') }}"
+    login_port: "{{ zabbix_server_db_port }}"
+    login_user: "{{ zabbix_server_db_login_user }}"
+    login_password: "{{ zabbix_server_db_login_password }}"
     encoding: utf8
   register: zabbix_server_db_mysql_created
   when: zabbix_server_db_engine == 'mysql'
@@ -106,10 +102,10 @@
 - name: Create MySQL user
   mysql_user:
     login_host: "{{ zabbix_server_db_host }}"
-    login_port: "{{ zabbix_server_db_port | default(zabbix_server_db_port_mysql_default) }}"
-    login_user: "{{ zabbix_server_db_login_user | default('root')}}"
-    login_password: "{{ zabbix_server_db_login_password | default('') }}"
-    host: "{{ zabbix_server_db_user_host | default('localhost') }}"
+    login_port: "{{ zabbix_server_db_port }}"
+    login_user: "{{ zabbix_server_db_login_user }}"
+    login_password: "{{ zabbix_server_db_login_password }}"
+    host: "{{ zabbix_server_db_user_host }}"
     name: "{{ zabbix_server_db_user }}"
     password: "{{ zabbix_server_db_password }}"
     priv: "{{ zabbix_server_db_name }}.*:ALL"
@@ -122,7 +118,7 @@
     psql
     --username {{ zabbix_server_db_user }}
     --host {{ zabbix_server_db_host }}
-    --port {{ zabbix_server_db_port | default(zabbix_server_db_port_pgsql_default) }}
+    --port {{ zabbix_server_db_port }}
     --dbname {{ zabbix_server_db_name }}
     --file {{ item }}
   args:
@@ -145,7 +141,7 @@
     --user={{ zabbix_server_db_user }}
     --password={{ zabbix_server_db_password }}
     --host={{ zabbix_server_db_host }}
-    --port={{ zabbix_server_db_port | default(zabbix_server_db_port_mysql_default) }}
+    --port={{ zabbix_server_db_port }}
     {{ zabbix_server_db_name }} < {{ item }}
   args:
     executable: /bin/bash
