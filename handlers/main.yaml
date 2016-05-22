@@ -4,4 +4,6 @@
   service:
     name: zabbix-server
     state: restarted
-  when: not zabbix_server_service_started.changed
+  when: >
+    zabbix_server_service_started is not defined or
+    not zabbix_server_service_started.changed
