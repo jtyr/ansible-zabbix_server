@@ -82,17 +82,6 @@ The default DB engine is set to PostgreSQL but it can be changed to MySQL
 (see example above). The change of the engine must be done
 before the first run of the role.
 
-This role requires [Config
-Encoders](https://github.com/jtyr/ansible/blob/jtyr-config_encoders/lib/ansible/plugins/filter/config_encoders.py).
-Download the file and put it into the `filter_plugins` directory in the root of
-your playbook:
-
-```
-$ mkdir ./filter_plugins
-$ cd ./filter_plugins
-$ curl -O https://github.com/jtyr/ansible/blob/jtyr-config_encoders/lib/ansible/plugins/filter/config_encoders.py
-```
-
 
 Role variables
 --------------
@@ -239,9 +228,11 @@ zabbix_server_config: "{{
 Dependencies
 ------------
 
-- [postgresql](http://github.com/jtyr/ansible-postgresql_server) or
-  [mysql](http://github.com/jtyr/ansible-mysql) role
-- [Config Encoders](https://github.com/jtyr/ansible/blob/jtyr-config_encoders/lib/ansible/plugins/filter/config_encoders.py)
+- [`config_encoder_filters`](https://github.com/jtyr/ansible-config_encoder_filters)
+- [`mysql`](http://github.com/jtyr/ansible-mysql) (optional)
+- [`postgresql`](http://github.com/jtyr/ansible-postgresql_server) (optional)
+- [`zabbix-agent`](https://github.com/jtyr/ansible-zabbix_agent) (optional)
+- [`zabbix-web`](https://github.com/jtyr/ansible-zabbix_web) (optional)
 
 
 License
