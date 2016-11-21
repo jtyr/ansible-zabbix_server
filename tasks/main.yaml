@@ -11,6 +11,7 @@
     description: EPEL YUM repo
     baseurl: "{{ zabbix_server_epel_yumrepo_url }}"
     gpgcheck: no
+    params: "{{ zabbix_server_epel_yumrepo_params }}"
   when: zabbix_server_epel_install
   tags:
     - zabbix_server_pkg
@@ -21,6 +22,7 @@
     description: Official Zabbix {{ zabbix_major_version }} YUM repo
     baseurl: "{{ zabbix_yumrepo_url }}"
     gpgcheck: no
+    params: "{{ zabbix_yumrepo_params }}"
   tags:
     - zabbix_server_pkg
 

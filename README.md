@@ -93,6 +93,9 @@ zabbix_major_version: 2.4
 # Zabbix YUM repo URL
 zabbix_yumrepo_url: http://repo.zabbix.com/zabbix/{{ zabbix_major_version }}/rhel/{{ ansible_distribution_major_version }}/$basearch/
 
+# Additional Zabbix YUM repo params
+zabbix_yumrepo_params: {}
+
 # Path to the zabix_server.conf file
 zabbix_server_config_file: /etc/zabbix/zabbix_server.conf
 
@@ -101,6 +104,9 @@ zabbix_server_epel_install: yes
 
 # EPEL YUM repo URL
 zabbix_server_epel_yumrepo_url: "{{ yumrepo_epel_url | default('https://dl.fedoraproject.org/pub/epel/$releasever/$basearch/') }}"
+
+# Additional EPEL YUM repo params
+zabbix_server_epel_yumrepo_params: "{{ yumrepo_epel_params || default({}) }}"
 
 # DB engine
 zabbix_server_db_engine: pgsql
