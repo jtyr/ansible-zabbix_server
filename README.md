@@ -106,7 +106,7 @@ zabbix_server_epel_install: yes
 zabbix_server_epel_yumrepo_url: "{{ yumrepo_epel_url | default('https://dl.fedoraproject.org/pub/epel/$releasever/$basearch/') }}"
 
 # Additional EPEL YUM repo params
-zabbix_server_epel_yumrepo_params: "{{ yumrepo_epel_params || default({}) }}"
+zabbix_server_epel_yumrepo_params: "{{ yumrepo_epel_params | default({}) }}"
 
 # DB engine
 zabbix_server_db_engine: pgsql
