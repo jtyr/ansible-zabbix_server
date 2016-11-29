@@ -26,56 +26,56 @@ Usage
 # Change default DB connection details
 - name: Example 2
   hosts: machine2
+  vars:
+    # Change engine to MySQL
+    zabbix_server_db_engine: mysql
+    # The DB is running on a remote machine
+    zabbix_server_db_host: 10.0.0.123
+    # Admin DB credentials for the zabbix user creation
+    zabbix_server_db_login_user: admin
+    zabbix_server_db_login_password: s3cr3t
+    # Zabbix DB user credentials
+    zabbix_server_db_user: zabbix
+    zabbix_server_db_password: z4b1x123
   roles:
     - mysql
-    - role: zabbix_server
-      vars:
-        # Change engine to MySQL
-        zabbix_server_db_engine: mysql
-        # The DB is running on a remote machine
-        zabbix_server_db_host: 10.0.0.123
-        # Admin DB credentials for the zabbix user creation
-        zabbix_server_db_login_user: admin
-        zabbix_server_db_login_password: s3cr3t
-        # Zabbix DB user credentials
-        zabbix_server_db_user: zabbix
-        zabbix_server_db_password: z4b1x123
+    - zabbix_server
 
 # Change default Logging configuration
 - name: Example 4
   hosts: machine4
+  vars:
+    # Increase the default log file size for log rotation to 10MB
+    zabbix_server_logging_filesize: 10
+    # Add custom Logging option
+    zabbix_server_logging__custom:
+      # Change the debug level to "Critical information"
+      DebugLevel: 1
   roles:
-    - role: zabbix_server
-      vars:
-        # Increase the default log file size for log rotation to 10MB
-        zabbix_server_logging_filesize: 10
-        # Add custom Logging option
-        zabbix_server_logging__custom:
-          # Change the debug level to "Critical information"
-          DebugLevel: 1
+    - zabbix_server
 
 # Add custom options
 - name: Example 5
   hosts: machine5
+  vars:
+    zabbix_server__custom:
+      # Change frequency of sending unsent alerts from 30 to 5 secs
+      SenderFrequency: 5
+      # Set timeout to 10 seconds
+      Timeout: 10
   roles:
-    - role: zabbix_server
-      vars:
-        zabbix_server__custom:
-          # Change frequency of sending unsent alerts from 30 to 5 secs
-          SenderFrequency: 5
-          # Set timeout to 10 seconds
-          Timeout: 10
+    - zabbix_server
 
 # Write zabbix_server.conf from scratch
 - name: Example 6
   hosts: machine6
+  vars:
+    zabbix_server_config:
+      DBName: zabbix
+      DebugLevel: 1
+      Timeout: 10
   roles:
-    - role: zabbix_server
-      vars:
-        zabbix_server_config:
-          DBName: zabbix
-          DebugLevel: 1
-          Timeout: 10
+    - zabbix_server
 ```
 
 The default DB engine is set to PostgreSQL but it can be changed to MySQL
@@ -236,7 +236,7 @@ Dependencies
 
 - [`config_encoder_filters`](https://github.com/jtyr/ansible-config_encoder_filters)
 - [`mysql`](http://github.com/jtyr/ansible-mysql) (optional)
-- [`postgresql`](http://github.com/jtyr/ansible-postgresql_server) (optional)
+- [`postgresql`](http://github.com/jtyr/ansible-postgresql) (optional)
 - [`zabbix-agent`](https://github.com/jtyr/ansible-zabbix_agent) (optional)
 - [`zabbix-web`](https://github.com/jtyr/ansible-zabbix_web) (optional)
 
