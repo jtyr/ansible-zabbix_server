@@ -237,8 +237,8 @@ Dependencies
 - [`config_encoder_filters`](https://github.com/jtyr/ansible-config_encoder_filters)
 - [`mysql`](http://github.com/jtyr/ansible-mysql) (optional)
 - [`postgresql`](http://github.com/jtyr/ansible-postgresql) (optional)
-- [`zabbix-agent`](https://github.com/jtyr/ansible-zabbix_agent) (optional)
-- [`zabbix-web`](https://github.com/jtyr/ansible-zabbix_web) (optional)
+- [`zabbix_agent`](https://github.com/jtyr/ansible-zabbix_agent) (optional)
+- [`zabbix_web`](https://github.com/jtyr/ansible-zabbix_web) (optional)
 
 
 License
