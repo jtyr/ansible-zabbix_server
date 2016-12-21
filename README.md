@@ -16,15 +16,13 @@ Usage
 -----
 
 ```
-# Default usage with no configuration changes
-- name: Example 1
+- name: Example of default usage with no configuration changes
   hosts: machine1
   roles:
     - postgresql
     - zabbix_server
 
-# Change default DB connection details
-- name: Example 2
+- name: Example of how to change default DB connection details
   hosts: machine2
   vars:
     # Change engine to MySQL
@@ -41,8 +39,7 @@ Usage
     - mysql
     - zabbix_server
 
-# Change default Logging configuration
-- name: Example 4
+- name: Example of how to change default Logging configuration
   hosts: machine4
   vars:
     # Increase the default log file size for log rotation to 10MB
@@ -54,8 +51,7 @@ Usage
   roles:
     - zabbix_server
 
-# Add custom options
-- name: Example 5
+- name: Example of how to add custom options
   hosts: machine5
   vars:
     zabbix_server__custom:
@@ -66,8 +62,7 @@ Usage
   roles:
     - zabbix_server
 
-# Write zabbix_server.conf from scratch
-- name: Example 6
+- name: Example of how to write zabbix_server.conf from scratch
   hosts: machine6
   vars:
     zabbix_server_config:
@@ -100,7 +95,7 @@ zabbix_yumrepo_params: {}
 zabbix_server_config_file: /etc/zabbix/zabbix_server.conf
 
 # Whether to install EPEL YUM repo
-zabbix_server_epel_install: yes
+zabbix_server_epel_install: "{{ yumrepo_epel_install | default(true) }}"
 
 # EPEL YUM repo URL
 zabbix_server_epel_yumrepo_url: "{{ yumrepo_epel_url | default('https://dl.fedoraproject.org/pub/epel/$releasever/$basearch/') }}"
@@ -120,8 +115,8 @@ zabbix_server_db_port_pgsql_default: 5432
 # Default MySQL port
 zabbix_server_db_port_mysql_default: 3306
 
-# Initial DB schema direcotry
-zabbix_server_db_schema_dir: /usr/share/doc/zabbix-server-{{ zabbix_server_db_engine }}-*/create
+# Initial DB schema directory
+zabbix_server_db_schema_dir: /usr/share/doc/zabbix-server-{{ zabbix_server_db_engine }}-*
 
 # User used to create DB and user
 zabbix_server_db_login_user: "{{

@@ -115,6 +115,45 @@
   tags:
     - zabbix_server_db
 
+- name: Get the schema directory
+  shell: ls -1d {{ zabbix_server_db_schema_dir }}
+  register: zabbix_server__db_schema_dir
+  changed_when: false
+  failed_when: false
+  tags:
+    - zabbix_server_db
+
+- name: Check if there is the create directory with SQL files
+  stat:
+    path: "{{ zabbix_server__db_schema_dir.stdout }}/create"
+  register: zabbix_server__db_create_dir
+  changed_when: false
+  failed_when: false
+  tags:
+    - zabbix_server_db
+
+- name: Check if the create.sql file already exists
+  stat:
+    path: "{{ zabbix_server__db_schema_dir.stdout }}/create.sql"
+  register: zabbix_server__db_create_sql
+  when: >
+    not zabbix_server__db_create_dir.stat.exists
+  changed_when: false
+  failed_when: false
+  tags:
+    - zabbix_server_db
+
+- name: Unarchive SQL file
+  shell: >
+    gunzip -c
+    {{ zabbix_server__db_schema_dir.stdout }}/create.sql.gz >
+    {{ zabbix_server__db_schema_dir.stdout }}/create.sql
+  tags:
+    - zabbix_server_db
+  when: >
+    not zabbix_server__db_create_dir.stat.exists and
+    not zabbix_server__db_create_sql.stat.exists
+
 - name: Import Zabbix DB schema for PostgreSQL
   shell: >
     psql
@@ -127,10 +166,15 @@
     executable: /bin/bash
   environment:
     PGPASSWORD: "{{ zabbix_server_db_password }}"
-  with_items:
-    - "{{ zabbix_server_db_schema_dir }}/schema.sql"
-    - "{{ zabbix_server_db_schema_dir }}/images.sql"
-    - "{{ zabbix_server_db_schema_dir }}/data.sql"
+  with_items: "{{
+    [
+        zabbix_server_db_schema_dir ~ '/create/schema.sql',
+        zabbix_server_db_schema_dir ~ '/create/images.sql',
+        zabbix_server_db_schema_dir ~ '/create/data.sql'
+    ] if zabbix_server__db_create_dir.stat.exists else
+    [
+        zabbix_server_db_schema_dir ~ '/create.sql'
+    ] }}"
   when: >
     zabbix_server_db_engine == 'pgsql' and
     zabbix_server_db_pgsql_created.changed
@@ -147,10 +191,15 @@
     {{ zabbix_server_db_name }} < {{ item }}
   args:
     executable: /bin/bash
-  with_items:
-    - "{{ zabbix_server_db_schema_dir }}/schema.sql"
-    - "{{ zabbix_server_db_schema_dir }}/images.sql"
-    - "{{ zabbix_server_db_schema_dir }}/data.sql"
+  with_items: "{{
+    [
+        zabbix_server_db_schema_dir ~ '/create/schema.sql',
+        zabbix_server_db_schema_dir ~ '/create/images.sql',
+        zabbix_server_db_schema_dir ~ '/create/data.sql'
+    ] if zabbix_server__db_create_dir.stat.exists else
+    [
+        zabbix_server_db_schema_dir ~ '/create.sql'
+    ] }}"
   when: >
     zabbix_server_db_engine == 'mysql' and
     zabbix_server_db_mysql_created.changed
