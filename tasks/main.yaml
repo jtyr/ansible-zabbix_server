@@ -10,7 +10,7 @@
     name: epel
     description: EPEL YUM repo
     baseurl: "{{ zabbix_server_epel_yumrepo_url }}"
-    gpgcheck: no
+    gpgkey: "{{ zabbix_server_epel_yumrepo_gpgkey }}"
     params: "{{ zabbix_server_epel_yumrepo_params }}"
   when: zabbix_server_epel_install
   tags:
@@ -27,9 +27,8 @@
     - zabbix_server_pkg
 
 - name: Install Zabbix server
-  yum:
+  package:
     name: "{{ zabbix_server_pkg }}"
-    state: present
   notify:
     - Restart Zabbix server
   tags:
@@ -45,9 +44,8 @@
     - zabbix_server_config
 
 - name: Install dependency for PostreSQL user/db creation/import
-  yum:
+  package:
     name: "{{ item }}"
-    state: present
   with_items: "{{ zabbix_server_db_pgsql_pkgs }}"
   when: zabbix_server_db_engine == 'pgsql'
   tags:
@@ -80,9 +78,8 @@
     - zabbix_server_db
 
 - name: Install dependency for MySQL user/db creation/import
-  yum:
+  package:
     name: "{{ item }}"
-    state: present
   with_items: "{{ zabbix_server_db_mysql_pkgs }}"
   when: zabbix_server_db_engine == 'mysql'
   tags:
