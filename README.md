@@ -40,21 +40,14 @@ Usage
     - zabbix_server
 
 - name: Example of how to change default Logging configuration
-  hosts: machine4
+  hosts: machine3
   vars:
     # Increase the default log file size for log rotation to 10MB
-    zabbix_server_logging_filesize: 10
-    # Add custom Logging option
-    zabbix_server_logging__custom:
+    zabbix_server_config_logfilesize: 10
+    # Add custom options
+    zabbix_server_config__custom:
       # Change the debug level to "Critical information"
       DebugLevel: 1
-  roles:
-    - zabbix_server
-
-- name: Example of how to add custom options
-  hosts: machine5
-  vars:
-    zabbix_server__custom:
       # Change frequency of sending unsent alerts from 30 to 5 secs
       SenderFrequency: 5
       # Set timeout to 10 seconds
@@ -63,7 +56,7 @@ Usage
     - zabbix_server
 
 - name: Example of how to write zabbix_server.conf from scratch
-  hosts: machine6
+  hosts: machine4
   vars:
     zabbix_server_config:
       DBName: zabbix
@@ -83,13 +76,13 @@ Role variables
 
 ```
 # Major Zabbix version (used for Zabbix YUM repo)
-zabbix_major_version: 2.4
+zabbix_server_major_version: "{{ zabbix_major_version | default(2.4) }}"
 
 # Zabbix YUM repo URL
-zabbix_yumrepo_url: http://repo.zabbix.com/zabbix/{{ zabbix_major_version }}/rhel/{{ ansible_distribution_major_version }}/$basearch/
+zabbix_server_yumrepo_url: "{{ zabbix_yumrepo_url | default('http://repo.zabbix.com/zabbix/' ~ zabbix_server_major_version ~ '/rhel/' ~ ansible_distribution_major_version ~ '/$basearch/') }}"
 
 # Additional Zabbix YUM repo params
-zabbix_yumrepo_params: {}
+zabbix_server_yumrepo_params: "{{ zabbix_yumrepo_params | default({}) }}"
 
 # Path to the zabix_server.conf file
 zabbix_server_config_file: /etc/zabbix/zabbix_server.conf
@@ -101,7 +94,7 @@ zabbix_server_epel_install: "{{ yumrepo_epel_install | default(true) }}"
 zabbix_server_epel_yumrepo_url: "{{ yumrepo_epel_url | default('https://dl.fedoraproject.org/pub/epel/$releasever/$basearch/') }}"
 
 # EPEL YUM repo GPG key
-zabbix_sserver_epel_yumrepo_gpgkey: "{{ yumrepo_epel_gpgkey | default('https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-$releasever') }}"
+zabbix_server_epel_yumrepo_gpgkey: "{{ yumrepo_epel_gpgkey | default('https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-$releasever') }}"
 
 # Additional EPEL YUM repo params
 zabbix_server_epel_yumrepo_params: "{{ yumrepo_epel_params | default({}) }}"
@@ -158,74 +151,33 @@ zabbix_server_db_user: zabbix
 zabbix_server_db_password: zabbix
 
 
-# Custom DB configuration
-zabbix_server_db__custom: {}
+# Values of the default options of the Zabbix config
+zabbix_server_config_alertscriptspath: /usr/lib/zabbix/alertscripts
+zabbix_server_config_externalscripts: /usr/lib/zabbix/externalscripts
+zabbix_server_config_pidfile: /var/run/zabbix/zabbix_server.pid
+zabbix_server_config_logfile: /var/log/zabbix/zabbix_server.log
+zabbix_server_config_logfilesize: 1
 
-# Default DB configuration
-zabbix_server_db__default:
-  "DB setting":
-    DBHost: "{{ zabbix_server_db_host }}"
-    DBPort: "{{ zabbix_server_db_port }}"
-    DBName: "{{ zabbix_server_db_name }}"
-    DBUser: "{{ zabbix_server_db_user }}"
-    DBPassword: "{{ zabbix_server_db_password }}"
+# Default options of the Zabbix configuration
+zabbix_server_config__default:
+  AlertScriptsPath: "{{ zabbix_server_config_alertscriptspath }}"
+  ExternalScripts: "{{ zabbix_server_config_externalscripts }}"
+  PidFile: "{{ zabbix_server_config_pidfile }}"
+  LogFile: "{{ zabbix_server_config_logfile }}"
+  LogFileSize: "{{ zabbix_server_config_logfilesize }}"
+  DBHost: "{{ zabbix_server_db_host }}"
+  DBPort: "{{ zabbix_server_db_port }}"
+  DBName: "{{ zabbix_server_db_name }}"
+  DBUser: "{{ zabbix_server_db_user }}"
+  DBPassword: "{{ zabbix_server_db_password }}"
 
-# Final DB configuration
-zabbix_server_db: "{{
-  zabbix_server_db__default.update(
-  zabbix_server_db__custom) }}{{ zabbix_server_db__default }}"
+# Custom options of the Zabbix configuration
+zabbix_server_config__custom: {}
 
-
-# Logging options
-zabbix_server_logging_file: /var/log/zabbix/zabbix_server.log
-zabbix_server_logging_filesize: 1
-
-# Custom logging configuration
-zabbix_server_logging__custom: {}
-
-# Default logging configuration
-zabbix_server_logging__default:
-  "Logging":
-    LogFile: "{{ zabbix_server_logging_file }}"
-    LogFileSize: "{{ zabbix_server_logging_filesize }}"
-
-# Final logging configuration
-zabbix_server_logging: "{{
-  zabbix_server_logging__default.update(
-  zabbix_server_logging__custom) }}{{ zabbix_server_logging__default }}"
-
-
-# Other configuration options
-zabbix_server_pidfile: /var/run/zabbix/zabbix_server.pid
-zabbix_server_alert_scripts_path: /usr/lib/zabbix/alertscripts
-zabbix_server_externalScripts: /usr/lib/zabbix/externalscripts
-
-# Custom other configuraton
-zabbix_server_other__custom: {}
-
-# Default other configuration
-zabbix_server_other__default:
-  "Other":
-    PidFile: "{{ zabbix_server_pidfile }}"
-    AlertScriptsPath: "{{ zabbix_server_alert_scripts_path }}"
-    ExternalScripts: "{{ zabbix_server_externalScripts }}"
-
-# Final other configuration
-zabbix_server_other: "{{
-  zabbix_server_other__default.update(
-  zabbix_server_other__custom) }}{{ zabbix_server_other__default }}"
-
-
-# Custom Zabbix configuration
-zabbix_server__custom: {}
-
-# Main Zabbix config
-zabbix_server__tmp: {}
+# Final Zabbix config
 zabbix_server_config: "{{
-  zabbix_server__tmp.update(zabbix_server_db) }}{{
-  zabbix_server__tmp.update(zabbix_server_logging) }}{{
-  zabbix_server__tmp.update(zabbix_server_other) }}{{
-  zabbix_server__tmp.update(zabbix_server__custom) }}{{ zabbix_server__tmp }}"
+  zabbix_server_config__default.update(zabbix_server_config__custom) }}{{
+  zabbix_server_config__default }}"
 ```
 
 
@@ -236,6 +188,7 @@ Dependencies
 - [`mysql`](http://github.com/jtyr/ansible-mysql) (optional)
 - [`postgresql`](http://github.com/jtyr/ansible-postgresql) (optional)
 - [`zabbix_agent`](https://github.com/jtyr/ansible-zabbix_agent) (optional)
+- [`zabbix_proxy`](https://github.com/jtyr/ansible-zabbix_proxy) (optional)
 - [`zabbix_web`](https://github.com/jtyr/ansible-zabbix_web) (optional)
 
 

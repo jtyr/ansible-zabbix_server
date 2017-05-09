@@ -12,17 +12,17 @@
     baseurl: "{{ zabbix_server_epel_yumrepo_url }}"
     gpgkey: "{{ zabbix_server_epel_yumrepo_gpgkey }}"
     params: "{{ zabbix_server_epel_yumrepo_params }}"
-  when: zabbix_server_epel_install
+  when: zabbix_server_epel_install == true
   tags:
     - zabbix_server_pkg
 
 - name: Add Zabbix YUM repo
   yum_repository:
     name: zabbix
-    description: Official Zabbix {{ zabbix_major_version }} YUM repo
-    baseurl: "{{ zabbix_yumrepo_url }}"
+    description: Official Zabbix {{ zabbix_server_major_version }} YUM repo
+    baseurl: "{{ zabbix_server_yumrepo_url }}"
     gpgcheck: no
-    params: "{{ zabbix_yumrepo_params }}"
+    params: "{{ zabbix_server_yumrepo_params }}"
   tags:
     - zabbix_server_pkg
 
