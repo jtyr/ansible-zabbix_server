@@ -113,7 +113,7 @@
     - zabbix_server_db
 
 - name: Get the schema directory
-  shell: ls -1d {{ zabbix_server_db_schema_dir }}
+  shell: ls -1d {{ zabbix_server_db_schema_dir }} | tail -n1
   register: zabbix_server__db_schema_dir
   changed_when: false
   failed_when: false
